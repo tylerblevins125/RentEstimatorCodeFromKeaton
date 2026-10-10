@@ -1,0 +1,606 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Structure Rent Estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap">
+<style>
+/* Layout: brand masthead, then a two-column workbench (unit form left, pricing result right), saved estimates below. */
+:root {
+  --blue-50:#F2F7FB; --blue-100:#E4EEF7; --blue-200:#B9D3EA; --blue-500:#2F7FC8; --blue:#0758A5; --blue-900:#043A6E;
+  --ink:#1A1A1B; --body:#58595B; --muted:#707274; --line:#D7D8D9; --fill:#ECEDEE; --alt:#F5F5F6;
+  --bg:#FFFFFF; --surface:#FFFFFF; --accent-ink:#0758A5; --on-blue:#FFFFFF;
+  --success:#2E7D4F; --warning:#8A5A12; --danger:#B4321E;
+  --hair:rgba(88,89,91,0.14); --shadow:0 1px 2px rgba(22,34,51,0.06); --focus:0 0 0 3px rgba(7,88,165,0.28);
+  --font-display:"Cormorant Garamond","Trajan Pro",Garamond,"Times New Roman",serif;
+  --font-sans:"Helvetica Neue",Helvetica,Arial,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-mono:"SF Mono","JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --blue-50:#0F1B28; --blue-100:#13263A; --blue-200:#24486E; --blue-500:#5A9BD8; --blue:#6FA8E0; --blue-900:#B9D3EA;
+  --ink:#F1F2F3; --body:#C4C6C9; --muted:#9A9DA1; --line:#2E3338; --fill:#22272C; --alt:#171B1F;
+  --bg:#111417; --surface:#181C20; --accent-ink:#8DBBE8; --on-blue:#0B1620;
+  --success:#5DBB86; --warning:#E0A64A; --danger:#E77A66;
+  --hair:rgba(196,198,201,0.14); --shadow:none; --focus:0 0 0 3px rgba(111,168,224,0.35); color-scheme:dark; } }
+:root[data-theme="dark"] {
+  --blue-50:#0F1B28; --blue-100:#13263A; --blue-200:#24486E; --blue-500:#5A9BD8; --blue:#6FA8E0; --blue-900:#B9D3EA;
+  --ink:#F1F2F3; --body:#C4C6C9; --muted:#9A9DA1; --line:#2E3338; --fill:#22272C; --alt:#171B1F;
+  --bg:#111417; --surface:#181C20; --accent-ink:#8DBBE8; --on-blue:#0B1620;
+  --success:#5DBB86; --warning:#E0A64A; --danger:#E77A66;
+  --hair:rgba(196,198,201,0.14); --shadow:none; --focus:0 0 0 3px rgba(111,168,224,0.35); color-scheme:dark; }
+
+* { box-sizing:border-box; }
+body { background:var(--bg); color:var(--body); font-family:var(--font-sans); font-size:16px; line-height:1.5; margin:0; }
+.wrap { max-width:1200px; margin:0 auto; padding-inline:16px; padding-block:24px 64px; }
+@media (min-width:720px){ .wrap { padding-inline:32px; } }
+
+header.mast { display:flex; align-items:center; gap:16px; padding-bottom:16px; border-bottom:1.5px solid var(--blue); flex-wrap:wrap; }
+.mark { width:44px; height:auto; flex:none; }
+.mark .b { fill:var(--blue); } .mark .g { fill:var(--muted); }
+.mast h1 { font-family:var(--font-display); font-weight:500; font-size:30px; line-height:1.1; letter-spacing:0.08em; text-transform:uppercase; color:var(--blue); margin:0; }
+.mast .sub { font-size:14px; color:var(--muted); margin:0; }
+.mast .grow { flex:1; min-width:200px; }
+.status-row { display:flex; gap:8px; flex-wrap:wrap; }
+.chip { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 12px; border-radius:999px; background:var(--fill); color:var(--body); white-space:nowrap; }
+.chip .dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+.chip.ok .dot { background:var(--success); } .chip.warn .dot { background:var(--warning); } .chip.bad .dot { background:var(--danger); }
+
+.bench { display:grid; gap:32px; margin-top:32px; grid-template-columns:1fr; }
+@media (min-width:980px){ .bench { grid-template-columns:minmax(0,5fr) minmax(0,6fr); } }
+.bench > * { min-width:0; }
+
+.overline { font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 4px; }
+h2 { font-size:22px; line-height:1.25; color:var(--ink); margin:0; font-weight:700; }
+h3 { font-size:16px; color:var(--ink); margin:0 0 8px; font-weight:700; }
+.rule { width:72px; height:1.5px; background:var(--blue); margin:12px 0 24px; border:0; }
+
+form { display:grid; gap:24px; }
+fieldset { border:0; padding:0; margin:0; display:grid; gap:12px; }
+legend { font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:0; margin-bottom:12px; }
+.grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); }
+.grid.wide { grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); }
+label.f { display:grid; gap:4px; font-size:13px; color:var(--ink); font-weight:600; min-width:0; }
+label.f small { font-weight:400; color:var(--muted); }
+input[type=text], input[type=number], select, textarea {
+  font:inherit; font-size:15px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:2px; padding:8px 12px; width:100%; min-width:0;
+  transition:border-color 120ms cubic-bezier(0.2,0.7,0.2,1); }
+textarea { min-height:72px; resize:vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, .check:focus-within { outline:none; box-shadow:var(--focus); border-color:var(--blue); }
+.checks { display:grid; gap:8px; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); }
+.check { display:flex; align-items:center; gap:8px; font-size:14px; color:var(--body); padding:8px 12px; border:1px solid var(--line); border-radius:2px; cursor:pointer; background:var(--surface); }
+.check input { accent-color:var(--blue); width:16px; height:16px; margin:0; flex:none; }
+.check:has(input:checked) { border-color:var(--blue); background:var(--blue-50); color:var(--ink); }
+
+.actions { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+button { font:inherit; font-size:15px; font-weight:700; border-radius:4px; padding:12px 24px; cursor:pointer; border:1px solid transparent; transition:background 120ms cubic-bezier(0.2,0.7,0.2,1); }
+.btn-primary { background:var(--blue); color:var(--on-blue); }
+.btn-primary:hover { background:var(--blue-900); color:var(--bg); }
+.btn-primary:disabled { opacity:0.55; cursor:progress; }
+.btn-ghost { background:transparent; color:var(--accent-ink); border-color:var(--line); }
+.btn-ghost:hover { background:var(--blue-50); }
+.btn-sm { padding:6px 12px; font-size:13px; }
+.hint { font-size:12px; color:var(--muted); }
+
+/* Result panel */
+.panel { background:var(--surface); border:1px solid var(--line); border-radius:6px; box-shadow:var(--shadow); padding:24px; display:grid; gap:24px; }
+@media (min-width:980px){ .panel { position:sticky; top:calc(env(safe-area-inset-top, 0px) + 16px); } }
+.subject-line { font-size:14px; color:var(--muted); margin:4px 0 0; }
+.big { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+.big .num { font-family:var(--font-display); font-weight:600; font-size:56px; line-height:1; color:var(--blue); font-variant-numeric:tabular-nums lining-nums; letter-spacing:0.01em; }
+.big .per { font-size:16px; color:var(--muted); }
+.conf { font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:4px 12px; border-radius:999px; }
+.conf.high { background:color-mix(in srgb, var(--success) 16%, transparent); color:var(--success); }
+.conf.medium { background:color-mix(in srgb, var(--warning) 18%, transparent); color:var(--warning); }
+.conf.low { background:color-mix(in srgb, var(--danger) 14%, transparent); color:var(--danger); }
+.conf-why { font-size:14px; margin:8px 0 0; }
+
+.range svg { width:100%; height:auto; display:block; }
+.range text { font-family:var(--font-sans); font-size:12px; fill:var(--muted); font-variant-numeric:tabular-nums; }
+.range .track { fill:var(--fill); } .range .band { fill:var(--blue-200); } .range .pin { fill:var(--blue); }
+.range .comp { fill:var(--muted); }
+.range .lbl-strong { fill:var(--ink); font-weight:700; }
+
+.tbl-wrap { overflow-x:auto; border-radius:2px; }
+table { border-collapse:collapse; width:100%; font-size:14px; font-variant-numeric:tabular-nums; }
+th { background:var(--blue); color:var(--on-blue); text-align:left; font-weight:700; font-size:13px; padding:8px 12px; white-space:nowrap; }
+td { padding:8px 12px; border-bottom:0.5px solid var(--hair); color:var(--body); vertical-align:top; }
+tbody tr:nth-child(even) td { background:var(--blue-50); }
+.r { text-align:right; } th.r { text-align:right; }
+.pos { color:var(--success); font-weight:700; } .neg { color:var(--danger); font-weight:700; }
+tfoot td { font-weight:700; color:var(--ink); border-top:1.5px solid var(--blue); border-bottom:0; background:transparent !important; }
+td .why { display:block; font-size:12px; color:var(--muted); }
+.sim { font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--fill); white-space:nowrap; }
+.sim.High { background:var(--blue-100); color:var(--accent-ink); }
+
+ul.notes { margin:0; padding-left:20px; display:grid; gap:6px; font-size:14px; }
+.callout { background:var(--blue-50); border-radius:6px; padding:16px; font-size:14px; }
+.callout strong { color:var(--ink); }
+.source { font-size:12px; color:var(--muted); margin:0; }
+
+.progress { display:grid; gap:12px; }
+.step { display:flex; gap:12px; align-items:flex-start; font-size:14px; }
+.step .ic { width:20px; height:20px; border-radius:50%; border:2px solid var(--line); flex:none; margin-top:1px; }
+.step.active .ic { border-color:var(--blue); border-top-color:transparent; animation:spin 900ms linear infinite; }
+.step.done .ic { background:var(--blue); border-color:var(--blue); }
+.step.skip .ic { background:var(--fill); border-style:dashed; }
+.step.active { color:var(--ink); font-weight:600; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){ .step.active .ic { animation:none; border-top-color:var(--blue); } }
+
+.howto ol { margin:0; padding-left:20px; display:grid; gap:12px; font-size:14px; }
+.howto li strong { color:var(--ink); }
+.err { border-left:3px solid var(--danger); padding:12px 16px; background:color-mix(in srgb, var(--danger) 8%, transparent); font-size:14px; color:var(--ink); border-radius:2px; }
+.actual { display:flex; gap:8px; align-items:end; flex-wrap:wrap; }
+.actual label.f { flex:1; min-width:160px; }
+
+/* History */
+section.history { margin-top:64px; }
+.hist-head { display:flex; justify-content:space-between; align-items:end; gap:16px; flex-wrap:wrap; }
+.acc { display:flex; gap:24px; flex-wrap:wrap; }
+.acc div { font-size:12px; color:var(--muted); }
+.acc b { display:block; font-size:22px; color:var(--ink); font-variant-numeric:tabular-nums; }
+.hist-list td button { white-space:nowrap; }
+.empty { padding:24px; border:1px dashed var(--line); border-radius:6px; font-size:14px; color:var(--muted); }
+footer { margin-top:48px; padding-top:16px; border-top:0.5px solid var(--hair); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <svg class="mark" viewBox="17 4 666.562 531.562" aria-hidden="true"><path class="b" d="M683.562 515.875H17V535.562H683.562V515.875Z"/><path class="b" d="M332 510.25H298.25V195.25L236.375 155.875V74.3125L332 4V510.25Z"/><path class="b" d="M559.812 420.25V510.25H593.562V428.688L559.812 420.25Z"/><path class="g" d="M107 198.062V510.25H292.625V486.344H202.625V140.406L107 198.062Z"/><path class="g" d="M336.219 510.25V486.344H362.938V510.25H336.219Z"/><path class="g" d="M368.562 355.562V510.25H554.188V486.344H462.781V317.594L509.188 335.875V220.562L429.031 171.344V333.062L368.562 355.562Z"/><path class="g" d="M599.188 486.344V510.25H651.219V486.344H599.188Z"/><path class="g" d="M101.375 486.344H45.125V510.25H101.375V486.344Z"/></svg>
+    <div class="grow">
+      <h1>Rent Estimator</h1>
+      <p class="sub">Market rent for a unit, priced against Structure's own recent leases in AppFolio.</p>
+    </div>
+    <div class="status-row" aria-live="polite">
+      <span class="chip" id="chip-af"><span class="dot"></span><span>AppFolio: checking</span></span>
+      <span class="chip" id="chip-ai"><span class="dot"></span><span>Pricing engine: checking</span></span>
+      <span class="chip" id="chip-db"><span class="dot"></span><span>Saved estimates: checking</span></span>
+    </div>
+  </header>
+
+  <div class="bench">
+    <!-- Unit form -->
+    <div>
+      <p class="overline">Step 1</p>
+      <h2>Describe the unit</h2>
+      <hr class="rule">
+      <form id="unit-form" novalidate>
+        <fieldset>
+          <legend>Location</legend>
+          <div class="grid wide">
+            <label class="f">Building address <input type="text" id="address" autocomplete="off" placeholder="532 Bancroft Ave" required></label>
+            <label class="f">Unit <input type="text" id="unit" autocomplete="off" placeholder="4"></label>
+          </div>
+          <div class="grid">
+            <label class="f">City <input type="text" id="city" value="San Francisco"></label>
+            <label class="f">ZIP <input type="text" id="zip" inputmode="numeric" maxlength="5" placeholder="94123"></label>
+            <label class="f">Neighborhood <small>optional</small><input type="text" id="hood" placeholder="Marina"></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Unit basics</legend>
+          <div class="grid">
+            <label class="f">Property type
+              <select id="ptype">
+                <option>Apartment in larger building</option>
+                <option>Flat in 2 to 4 unit building</option>
+                <option>Condo</option>
+                <option>Townhouse</option>
+                <option>Single-family home</option>
+                <option>In-law / ADU</option>
+              </select></label>
+            <label class="f">Bedrooms
+              <select id="beds"><option value="0">Studio</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5+</option></select></label>
+            <label class="f">Bathrooms
+              <select id="baths"><option>1</option><option>1.5</option><option>2</option><option>2.5</option><option>3</option><option>3.5+</option></select></label>
+            <label class="f">Square feet <input type="number" id="sqft" min="100" max="10000" step="10" placeholder="750"></label>
+            <label class="f">Floor <input type="number" id="floor" min="0" max="80" placeholder="2"></label>
+            <label class="f">Year built <small>optional</small><input type="number" id="year" min="1850" max="2030" placeholder="1925"></label>
+          </div>
+          <div class="grid">
+            <label class="f">Condition
+              <select id="condition"><option>Original / dated</option><option selected>Updated</option><option>Fully renovated</option><option>New construction</option></select></label>
+            <label class="f">Parking
+              <select id="parking"><option>None</option><option>Street permit only</option><option>Shared garage space</option><option>Assigned garage space</option><option>Two or more spaces</option></select></label>
+            <label class="f">Laundry
+              <select id="laundry"><option>None</option><option>Shared in building</option><option selected>In-unit washer and dryer</option></select></label>
+            <label class="f">Pets
+              <select id="pets"><option>No pets</option><option>Cats only</option><option selected>Cats and dogs</option></select></label>
+            <label class="f">Utilities included
+              <select id="utils"><option>None</option><option selected>Water, sewer, garbage</option><option>All utilities</option></select></label>
+            <label class="f">Lease term
+              <select id="term"><option>12 months</option><option>6 months</option><option>Month-to-month</option></select></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Unit features</legend>
+          <div class="checks" id="unit-feats"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Building amenities</legend>
+          <div class="checks" id="bldg-feats"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Anything else</legend>
+          <label class="f">Notes for pricing <small>views, noise, layout quirks, recent upgrades</small>
+            <textarea id="notes" placeholder="Bay view from living room. Kitchen remodeled 2024. Faces a busy street."></textarea></label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="go">Estimate rent</button>
+          <button type="button" class="btn-ghost" id="stop" hidden>Stop</button>
+          <button type="button" class="btn-ghost" id="reset">Clear form</button>
+          <span class="hint" id="go-hint">Takes about one to two minutes.</span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Result -->
+    <div>
+      <p class="overline">Step 2</p>
+      <h2>Recommended rent</h2>
+      <hr class="rule">
+      <div class="panel" id="result" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <section class="history">
+    <div class="hist-head">
+      <div>
+        <p class="overline">Track record</p>
+        <h2>Saved estimates</h2>
+      </div>
+      <div class="acc" id="acc"></div>
+    </div>
+    <hr class="rule">
+    <div id="history"><div class="empty">Loading saved estimates.</div></div>
+  </section>
+
+  <footer>
+    <span>Structure Properties · 3727 Buchanan Street, Floor 4, San Francisco, CA 94123 · DRE #01961414</span>
+    <span>Estimates support pricing decisions. Confirm against current listings before you publish a rent.</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+const UNIT_FEATS = ["Dishwasher","Hardwood floors","Private outdoor space","Views","Abundant natural light / corner","Fireplace","Walk-in closet","Air conditioning","Central heat","Extra storage","Furnished","Home office / den"];
+const BLDG_FEATS = ["Elevator","Doorman / concierge","Fitness center","Shared roof deck or yard","Bike storage","EV charging","Package lockers","Pool"];
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => (n == null || isNaN(n)) ? "" : "$" + Math.round(Number(n)).toLocaleString("en-US");
+const signed = (n) => (Number(n) >= 0 ? "+" : "−") + "$" + Math.abs(Math.round(Number(n))).toLocaleString("en-US");
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dateLong = (ms) => new Date(ms).toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric"});
+
+function buildChecks(el, list, prefix, defaults) {
+  el.innerHTML = list.map((f, i) => `<label class="check"><input type="checkbox" id="${prefix}${i}" value="${esc(f)}" ${defaults.includes(f) ? "checked" : ""}><span>${esc(f)}</span></label>`).join("");
+}
+buildChecks($("unit-feats"), UNIT_FEATS, "uf", ["Dishwasher","Hardwood floors"]);
+buildChecks($("bldg-feats"), BLDG_FEATS, "bf", []);
+
+function readForm() {
+  const v = (id) => $(id).value.trim();
+  const num = (id) => v(id) === "" ? null : Number(v(id));
+  const checked = (wrap) => [...$(wrap).querySelectorAll("input:checked")].map(i => i.value);
+  return {
+    address: v("address"), unit: v("unit"), city: v("city"), zip: v("zip"), neighborhood: v("hood"),
+    propertyType: v("ptype"), beds: Number(v("beds")), baths: v("baths"), sqft: num("sqft"), floor: num("floor"), yearBuilt: num("year"),
+    condition: v("condition"), parking: v("parking"), laundry: v("laundry"), pets: v("pets"), utilitiesIncluded: v("utils"), leaseTerm: v("term"),
+    unitFeatures: checked("unit-feats"), buildingAmenities: checked("bldg-feats"), notes: v("notes")
+  };
+}
+function fillForm(s) {
+  const set = (id, val) => { if (val != null) $(id).value = val; };
+  set("address", s.address); set("unit", s.unit); set("city", s.city); set("zip", s.zip); set("hood", s.neighborhood);
+  set("ptype", s.propertyType); set("beds", String(s.beds)); set("baths", s.baths); set("sqft", s.sqft ?? ""); set("floor", s.floor ?? ""); set("year", s.yearBuilt ?? "");
+  set("condition", s.condition); set("parking", s.parking); set("laundry", s.laundry); set("pets", s.pets); set("utils", s.utilitiesIncluded); set("term", s.leaseTerm); set("notes", s.notes);
+  document.querySelectorAll("#unit-feats input").forEach(i => i.checked = (s.unitFeatures || []).includes(i.value));
+  document.querySelectorAll("#bldg-feats input").forEach(i => i.checked = (s.buildingAmenities || []).includes(i.value));
+}
+const bedLabel = (b) => b === 0 ? "Studio" : (b >= 5 ? "5+ bed" : b + " bed");
+const subjectLine = (s) => [s.address + (s.unit ? ", Unit " + s.unit : ""), [s.city, s.zip].filter(Boolean).join(" "), bedLabel(s.beds) + " / " + s.baths + " bath", s.sqft ? s.sqft.toLocaleString("en-US") + " sq ft" : ""].filter(Boolean).join(" · ");
+
+// Draft persistence (per viewer convenience)
+const DRAFT_KEY = "rent-estimator-draft";
+try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); if (d) fillForm(d); } catch {}
+$("unit-form").addEventListener("input", () => { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(readForm())); } catch {} });
+$("reset").onclick = () => { $("unit-form").reset(); buildChecks($("unit-feats"), UNIT_FEATS, "uf", []); buildChecks($("bldg-feats"), BLDG_FEATS, "bf", []); try { localStorage.removeItem(DRAFT_KEY); } catch {} };
+
+function setChip(id, state, text) { const c = $(id); c.className = "chip " + state; c.lastElementChild.textContent = text; }
+
+// ---------- Result rendering ----------
+const resultEl = $("result");
+function renderHowTo() {
+  resultEl.innerHTML = `
+    <div class="howto">
+      <h3>How each estimate is built</h3>
+      <ol>
+        <li><strong>Pull comparables from AppFolio.</strong> Structure's signed leases from the last 18 months and current asking rents near the unit, matched on bedroom count.</li>
+        <li><strong>Set a base rent.</strong> From the closest comps, adjusted for size, date signed and location within the ZIP.</li>
+        <li><strong>Price each feature.</strong> Parking, laundry, outdoor space, condition and the rest each get a dollar adjustment with a reason you can show an owner.</li>
+        <li><strong>Return a range and confidence.</strong> Thin or distant comps widen the range and lower the confidence.</li>
+      </ol>
+    </div>
+    <div class="callout"><strong>Fill in the unit on the left and press Estimate rent.</strong> Every estimate is saved below so you can record the rent it actually leased at and see how accurate the tool has been.</div>`;
+}
+
+function renderProgress(steps) {
+  resultEl.innerHTML = `<div class="progress">${steps.map(s => `<div class="step ${s.state}"><span class="ic"></span><span>${esc(s.label)}${s.detail ? `<br><span class="hint">${esc(s.detail)}</span>` : ""}</span></div>`).join("")}</div>`;
+}
+
+function rangeSvg(r) {
+  const comps = (r.comps || []).map(c => Number(c.rent)).filter(n => n > 0);
+  const vals = [r.low, r.high, r.recommended, ...comps].map(Number).filter(n => n > 0);
+  if (!vals.length) return "";
+  let min = Math.min(...vals), max = Math.max(...vals);
+  const pad = Math.max((max - min) * 0.12, 100); min = Math.floor((min - pad) / 100) * 100; max = Math.ceil((max + pad) / 100) * 100;
+  const W = 600, L = 16, R = 584, x = (v) => L + (v - min) / (max - min) * (R - L);
+  const compDots = comps.map(v => `<circle class="comp" cx="${x(v).toFixed(1)}" cy="50" r="4"><title>Comp ${fmt(v)}</title></circle>`).join("");
+  return `<div class="range"><svg viewBox="0 0 ${W} 96" role="img" aria-label="Range ${fmt(r.low)} to ${fmt(r.high)}, recommended ${fmt(r.recommended)}">
+    <rect class="track" x="${L}" y="44" width="${R - L}" height="12" rx="6"/>
+    <rect class="band" x="${x(r.low)}" y="44" width="${Math.max(2, x(r.high) - x(r.low))}" height="12" rx="6"/>
+    ${compDots}
+    <rect class="pin" x="${x(r.recommended) - 2}" y="34" width="4" height="32" rx="2"/>
+    <text class="lbl-strong" x="${x(r.recommended)}" y="24" text-anchor="middle">${fmt(r.recommended)}</text>
+    <text x="${x(r.low)}" y="80" text-anchor="${x(r.low) < 60 ? "start" : "middle"}">${fmt(r.low)}</text>
+    <text x="${x(r.high)}" y="80" text-anchor="${x(r.high) > 540 ? "end" : "middle"}">${fmt(r.high)}</text>
+  </svg><p class="source">Blue band is the recommended range. Gray dots are the comparable rents used.</p></div>`;
+}
+
+function renderResult(rec) {
+  const r = rec.result, s = rec.subject;
+  const adj = Array.isArray(r.adjustments) ? r.adjustments : [];
+  const adjSum = adj.reduce((a, b) => a + (Number(b.amount) || 0), 0);
+  const base = Number(r.base?.amount) || 0;
+  const comps = Array.isArray(r.comps) ? r.comps : [];
+  const conf = ["high","medium","low"].includes(r.confidence) ? r.confidence : "low";
+  const ppsf = s.sqft ? (Number(r.recommended) / s.sqft) : null;
+  resultEl.innerHTML = `
+    <div>
+      <p class="subject-line">${esc(subjectLine(s))}</p>
+      <div class="big"><span class="num">${fmt(r.recommended)}</span><span class="per">per month${ppsf ? " · $" + ppsf.toFixed(2) + " / sq ft" : ""}</span><span class="conf ${conf}">${conf} confidence</span></div>
+      <p class="conf-why">${esc(r.confidence_reason || "")}</p>
+    </div>
+    ${rangeSvg(r)}
+    <div>
+      <h3>How we got there</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Factor</th><th class="r">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>Base rent from comps<span class="why">${esc(r.base?.method || "")}</span></td><td class="r">${fmt(base)}</td></tr>
+          ${adj.map(a => `<tr><td>${esc(a.factor)}<span class="why">${esc(a.reason || "")}</span></td><td class="r ${Number(a.amount) >= 0 ? "pos" : "neg"}">${signed(a.amount)}</td></tr>`).join("")}
+        </tbody>
+        <tfoot><tr><td>Base plus adjustments${Math.abs(base + adjSum - r.recommended) > 1 ? " (recommended rent is rounded)" : ""}</td><td class="r">${fmt(base + adjSum)}</td></tr></tfoot>
+      </table></div>
+    </div>
+    <div>
+      <h3>Comparables used (${comps.length})</h3>
+      ${comps.length ? `<div class="tbl-wrap"><table>
+        <thead><tr><th>Address</th><th>Bed / bath</th><th class="r">Sq ft</th><th class="r">Rent</th><th>Type</th><th>Date</th><th>Match</th></tr></thead>
+        <tbody>${comps.map(c => `<tr><td>${esc(c.address)}${c.unit ? ", Unit " + esc(c.unit) : ""}${c.note ? `<span class="why">${esc(c.note)}</span>` : ""}</td><td>${esc(c.beds)} / ${esc(c.baths)}</td><td class="r">${c.sqft ? Number(c.sqft).toLocaleString("en-US") : ""}</td><td class="r">${fmt(c.rent)}</td><td>${esc(c.kind || "")}</td><td>${esc(c.date || "")}</td><td><span class="sim ${esc(c.similarity)}">${esc(c.similarity || "")}</span></td></tr>`).join("")}</tbody>
+      </table></div>` : `<div class="err">No comparable Structure leases were found for this location and size. This estimate leans on general San Francisco market knowledge, so check it against current listings before using it.</div>`}
+      <p class="source" style="margin-top:8px">Source: Structure Properties AppFolio lease history${rec.compsAsOf ? ", as of " + esc(dateLong(rec.compsAsOf)) : ""}.${rec.appfolioStatus && rec.appfolioStatus !== "ok" ? " AppFolio was not reachable for this run." : ""}</p>
+    </div>
+    ${(r.market_notes || []).length ? `<div><h3>Market context</h3><ul class="notes">${r.market_notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul><p class="source" style="margin-top:8px">Market context comes from Claude's general knowledge of San Francisco rents, which can trail the current market by months.</p></div>` : ""}
+    ${(r.risks || []).length ? `<div><h3>What could move this number</h3><ul class="notes">${r.risks.map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>` : ""}
+    ${r.listing_tip ? `<div class="callout"><strong>Pricing tip.</strong> ${esc(r.listing_tip)}</div>` : ""}
+    <div class="actions">
+      <button type="button" class="btn-ghost btn-sm" id="copy">Copy summary for an owner</button>
+      <span class="hint" id="copy-msg"></span>
+    </div>
+    ${rec.id ? `<div class="actual">
+      <label class="f">Actual leased rent <small>record it once signed to track accuracy</small><input type="number" id="actual-input" min="0" step="25" value="${rec.actualRent ?? ""}" placeholder="e.g. 3450"></label>
+      <button type="button" class="btn-ghost btn-sm" id="actual-save">Save actual rent</button>
+      <span class="hint" id="actual-msg"></span>
+    </div>` : ""}`;
+  $("copy").onclick = async () => {
+    const text = summaryText(rec);
+    try { await navigator.clipboard.writeText(text); $("copy-msg").textContent = "Copied."; }
+    catch { $("copy-msg").textContent = "Copy blocked. Select the text below."; const pre = document.createElement("textarea"); pre.value = text; pre.style.minHeight = "200px"; resultEl.appendChild(pre); pre.select(); }
+  };
+  if (rec.id) $("actual-save").onclick = () => saveActual(rec);
+}
+
+function summaryText(rec) {
+  const r = rec.result, s = rec.subject;
+  const lines = [
+    `Recommended rent for ${s.address}${s.unit ? ", Unit " + s.unit : ""}: ${fmt(r.recommended)} per month (range ${fmt(r.low)} to ${fmt(r.high)}, ${r.confidence} confidence).`,
+    "",
+    `Base rent from comparable leases: ${fmt(r.base?.amount)}. ${r.base?.method || ""}`,
+    ...(r.adjustments || []).map(a => `${a.factor}: ${signed(a.amount)}. ${a.reason || ""}`),
+    "",
+    `Based on ${(r.comps || []).length} comparable Structure leases${rec.compsAsOf ? " as of " + dateLong(rec.compsAsOf) : ""}.`
+  ];
+  return lines.join("\n");
+}
+
+// ---------- Capabilities ----------
+let mcp = null, sample = null, db = null, user = null, myId = null;
+const AF = "AppFolio Realm-X", AF_TOOL = "ask_appfolio";
+
+function appfolioMessage(s) {
+  const lo = Math.max(0, s.beds - 1), hi = s.beds + 1;
+  const place = s.zip ? `ZIP ${s.zip}` : `${s.city || "San Francisco"}`;
+  return `For rent comparables near ${s.address}${s.unit ? " Unit " + s.unit : ""}, ${s.city || "San Francisco"} ${s.zip || ""}: list finalized leases that started in the last 18 months, plus units currently vacant or on notice with their market rent, at properties in ${place} with ${lo} to ${hi} bedrooms. If there are fewer than 10, widen to adjacent ZIP codes in ${s.city || "San Francisco"}. Exclude leases with $0 rent. For each row give property address, unit, ZIP, beds, baths, square feet, market rent, actual lease rent, lease start date, status (signed lease or vacant asking), and any recorded unit amenities such as parking, laundry, or outdoor space. Put the full list, up to 40 rows, as a markdown table directly in your answer text.`;
+}
+
+function mcpErrorCopy(e) {
+  switch (e?.code) {
+    case "needs_reauth": return "AppFolio needs to be reconnected. Reconnect it in claude.ai Settings, Connectors.";
+    case "server_not_connected": case "server_not_found": return "AppFolio is not connected for you. Add AppFolio Realm-X in claude.ai Settings, Connectors.";
+    case "selection_required": return "You have more than one AppFolio connector. Choose one when prompted, then run the estimate again.";
+    case "not_in_manifest": case "approval_required": return "AppFolio access was not allowed for this page. Allow it from the page's Permissions menu to use your lease history.";
+    case "blocked_by_policy": return "Your organization's policy blocks AppFolio for this page.";
+    case "server_unavailable": return "AppFolio did not respond in time.";
+    case "tool_error": return "AppFolio could not answer: " + (e.message || "unknown error") + ".";
+    default: return "AppFolio could not be reached.";
+  }
+}
+function sampleErrorCopy(e) {
+  switch (e?.code) {
+    case "not_granted": case "sampling_disabled": case "not_declared": case "capability_disabled": case "capability_removed":
+      return "The pricing engine is turned off for this page. Allow Claude for this page from its Permissions menu to run estimates.";
+    case "rate_limited": return "You have hit your Claude usage limit for now. Try again in a few minutes.";
+    case "session_expired": return "Your session expired. Sign in to Claude again, then retry.";
+    case "invalid_json": return "The pricing engine returned an unreadable answer. Press Estimate rent to try again.";
+    case "refused": return "The pricing engine declined this request. Check the notes field and try again.";
+    case "prompt_too_large": return "Too much comparable data came back to price in one pass. Add a ZIP code to narrow the search.";
+    default: return "The pricing engine was interrupted. Press Estimate rent to try again.";
+  }
+}
+
+function pricingPrompt(s, compsText, appfolioStatus, today) {
+  return `You are the rental pricing analyst for Structure Properties, a property manager in San Francisco. Today is ${today}. Price the subject unit at a realistic market rent for a new 12-month lease (adjust if a different term is requested).
+
+SUBJECT UNIT (JSON):
+${JSON.stringify(s, null, 2)}
+
+STRUCTURE'S INTERNAL COMPARABLES FROM APPFOLIO (${appfolioStatus === "ok" ? "pulled just now" : "UNAVAILABLE for this run"}):
+${compsText || "(none)"}
+
+METHOD
+1. Treat the AppFolio leases and asking rents as primary evidence. Prefer the same ZIP, same bedroom count, similar size, and leases signed in the last 6 months. Weight signed leases above asking rents.
+2. Set a base rent from the best comps for a comparable unit without the subject's distinguishing features. Explain the method in one sentence (which comps, any time or size adjustment).
+3. Add dollar adjustments, one per meaningful difference between the subject and the comps: size, condition, parking, laundry, outdoor space, views, floor/light, building amenities, pets, utilities included, furnished, lease term, and anything in notes. Use realistic San Francisco premiums. Skip factors that do not differ from the comps. Each adjustment needs a short reason.
+4. recommended must equal base.amount plus the sum of adjustments, rounded to the nearest $25. low and high bracket a realistic leasing range (typically 3 to 8 percent each side; wider when evidence is thin).
+5. Confidence: high = 5 or more close comps in the last 6 months; medium = some close comps or older/wider ones; low = few or no comps.
+6. Use your general knowledge of San Francisco neighborhoods and rent trends only for context and to fill gaps, and say so.
+7. NEVER invent comparables. The comps array may contain only rows that appear in the AppFolio data above, copied faithfully. If there are none, return an empty array and low confidence.
+8. Plain, direct language for a property manager or owner. Do not use em dashes.
+
+Reply with only this JSON object:
+{"recommended": number, "low": number, "high": number, "confidence": "high"|"medium"|"low", "confidence_reason": string,
+ "base": {"amount": number, "method": string},
+ "adjustments": [{"factor": string, "amount": number, "reason": string}],
+ "comps": [{"address": string, "unit": string, "beds": string, "baths": string, "sqft": number|null, "rent": number, "kind": "Signed lease"|"Asking rent", "date": string, "similarity": "High"|"Medium"|"Low", "note": string}],
+ "market_notes": [string, up to 3],
+ "risks": [string, up to 3],
+ "listing_tip": string}
+Include at most 8 comps, closest first.`;
+}
+
+let ctl = null, running = false;
+async function runEstimate(ev) {
+  ev.preventDefault();
+  if (running) return;
+  const s = readForm();
+  if (!s.address) { $("address").focus(); $("go-hint").textContent = "Enter the building address first."; return; }
+  if (!sample) { resultEl.innerHTML = `<div class="err">The pricing engine is not available in this view. Open this page in Claude while signed in to run estimates.</div>`; return; }
+  running = true; $("go").disabled = true; $("stop").hidden = false; $("go-hint").textContent = "Working. Takes about one to two minutes.";
+  ctl = new AbortController();
+  const steps = [
+    {label:"Pulling comparable leases from AppFolio", state:"active", detail: s.zip ? `ZIP ${s.zip}, ${bedLabel(Math.max(0,s.beds-1))} to ${bedLabel(s.beds+1)}` : s.city},
+    {label:"Pricing the unit and its features", state:""},
+    {label:"Saving the estimate", state:""}
+  ];
+  renderProgress(steps);
+  let compsText = "", appfolioStatus = "ok", afNote = "";
+  const compsAsOf = Date.now();
+  if (mcp) {
+    try {
+      const res = await mcp.callTool(AF, AF_TOOL, { user_message: appfolioMessage(s) }, { cache:false });
+      const blocks = (res.content || []).map(b => b.type === "text" ? b.text : JSON.stringify(b)).join("\n");
+      compsText = blocks.slice(0, 120000);
+      steps[0].state = "done"; steps[0].detail = "Comparables received.";
+    } catch (e) {
+      if (e?.code === "cancelled") return finish("Stopped.");
+      appfolioStatus = e?.code || "error"; afNote = mcpErrorCopy(e);
+      steps[0].state = "skip"; steps[0].detail = afNote + " Continuing without internal comps.";
+    }
+  } else {
+    appfolioStatus = "unavailable"; steps[0].state = "skip"; steps[0].detail = "AppFolio is not available in this view. Continuing without internal comps.";
+  }
+  steps[1].state = "active"; steps[1].detail = "Thinking through comps and adjustments."; renderProgress(steps);
+  const today = new Date().toLocaleDateString("en-US", {month:"long", day:"numeric", year:"numeric"});
+  let result;
+  try {
+    result = await sample.json(pricingPrompt(s, compsText, appfolioStatus, today), { modelTier:"complex", cache:false, signal: ctl.signal,
+      onText: () => { if (steps[1].detail !== "Writing up the estimate.") { steps[1].detail = "Writing up the estimate."; renderProgress(steps); } } });
+    if (!result || typeof result.recommended !== "number") throw { code:"invalid_json" };
+  } catch (e) {
+    if (e?.code === "cancelled") return finish("Stopped.");
+    resultEl.innerHTML = `<div class="err">${esc(sampleErrorCopy(e))}</div>`;
+    return finish("");
+  }
+  steps[1].state = "done"; steps[2].state = "active"; renderProgress(steps);
+  const rec = { subject: s, result, compsAsOf: appfolioStatus === "ok" ? compsAsOf : null, appfolioStatus, createdAt: Date.now(), by: myId, actualRent: null };
+  if (db) {
+    try { const ref = await db.collection("estimates").add(rec); rec.id = ref.id; }
+    catch { afNote = "This estimate could not be saved."; }
+  }
+  renderResult(rec);
+  finish(afNote);
+}
+function finish(msg) {
+  running = false; $("go").disabled = false; $("stop").hidden = true; $("go-hint").textContent = msg || "Takes about one to two minutes.";
+  if (msg === "Stopped.") renderHowTo();
+}
+$("unit-form").addEventListener("submit", runEstimate);
+$("stop").onclick = () => ctl?.abort();
+
+async function saveActual(rec) {
+  const v = Number($("actual-input").value);
+  if (!(v > 0)) { $("actual-msg").textContent = "Enter the monthly rent it leased at."; return; }
+  try { await db.collection("estimates").doc(rec.id).update({ actualRent: v, actualAt: Date.now() }); rec.actualRent = v; $("actual-msg").textContent = "Saved."; }
+  catch (e) { $("actual-msg").textContent = e?.code === "not_granted" ? "You have view-only access, so this cannot be saved." : "Could not save. Try again."; }
+}
+
+// ---------- History ----------
+let historyRows = [];
+async function renderHistory() {
+  const el = $("history");
+  if (!historyRows.length) { el.innerHTML = `<div class="empty">No estimates yet. Your team's estimates will appear here with the date, the recommended rent, and the rent each unit actually leased at.</div>`; $("acc").innerHTML = ""; return; }
+  let names = {};
+  if (user) { try { const ids = [...new Set(historyRows.map(r => r.by).filter(Boolean))]; if (ids.length) names = await user.profiles(ids); } catch {} }
+  el.innerHTML = `<div class="tbl-wrap hist-list"><table>
+    <thead><tr><th>Date</th><th>Unit</th><th>Size</th><th class="r">Estimate</th><th class="r">Actual</th><th class="r">Variance</th><th>By</th><th></th></tr></thead>
+    <tbody>${historyRows.map((r, i) => {
+      const s = r.subject || {}, est = r.result?.recommended, act = r.actualRent;
+      const varPct = act && est ? ((act - est) / est * 100) : null;
+      return `<tr><td>${esc(dateLong(r.createdAt))}</td><td>${esc(s.address)}${s.unit ? ", Unit " + esc(s.unit) : ""}<span class="why">${esc([s.zip, s.neighborhood].filter(Boolean).join(" · "))}</span></td><td>${esc(bedLabel(s.beds))} / ${esc(s.baths)}</td><td class="r">${fmt(est)}</td><td class="r">${act ? fmt(act) : ""}</td><td class="r">${varPct == null ? "" : `<span class="${Math.abs(varPct) <= 5 ? "pos" : "neg"}">${varPct >= 0 ? "+" : "−"}${Math.abs(varPct).toFixed(1)}%</span>`}</td><td>${esc((names[r.by]?.name) || "")}</td><td><button type="button" class="btn-ghost btn-sm" data-i="${i}">Open</button></td></tr>`;
+    }).join("")}</tbody></table></div>`;
+  el.querySelectorAll("button[data-i]").forEach(b => b.onclick = () => { const r = historyRows[Number(b.dataset.i)]; fillForm(r.subject || {}); renderResult(r); resultEl.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"}); });
+  const scored = historyRows.filter(r => r.actualRent && r.result?.recommended);
+  if (scored.length) {
+    const errs = scored.map(r => Math.abs(r.actualRent - r.result.recommended) / r.result.recommended * 100).sort((a, b) => a - b);
+    const med = errs.length % 2 ? errs[(errs.length - 1) / 2] : (errs[errs.length / 2 - 1] + errs[errs.length / 2]) / 2;
+    const within = scored.filter(r => Math.abs(r.actualRent - r.result.recommended) / r.result.recommended <= 0.05).length;
+    $("acc").innerHTML = `<div><b>${historyRows.length}</b>estimates</div><div><b>${scored.length}</b>with actual rent</div><div><b>${med.toFixed(1)}%</b>median miss</div><div><b>${Math.round(within / scored.length * 100)}%</b>within 5%</div>`;
+  } else {
+    $("acc").innerHTML = `<div><b>${historyRows.length}</b>estimates</div><div><b>0</b>with actual rent</div>`;
+  }
+}
+
+// ---------- Boot ----------
+renderHowTo();
+(async () => {
+  const c = window.claude;
+  if (!c?.use) { setChip("chip-af","bad","AppFolio: open in Claude"); setChip("chip-ai","bad","Pricing engine: open in Claude"); setChip("chip-db","bad","Saved estimates: open in Claude"); $("history").innerHTML = `<div class="empty">Open this page in Claude to see saved estimates.</div>`; return; }
+  const [m, sm, d, u] = await Promise.all([c.use("mcp"), c.use("sample"), c.use("db"), c.use("user")].map(p => p.catch(() => null)));
+  mcp = m; sample = sm; db = d; user = u;
+  setChip("chip-ai", sample ? "ok" : "bad", sample ? "Pricing engine: ready" : "Pricing engine: unavailable");
+  if (mcp) {
+    try {
+      const lt = await mcp.listTools(AF);
+      const srv = lt.servers?.find(x => x.server === AF);
+      if (!srv) setChip("chip-af","warn","AppFolio: not connected");
+      else if (srv.authStatus === "needs_reauth") setChip("chip-af","warn","AppFolio: reconnect needed");
+      else setChip("chip-af","ok","AppFolio: ready");
+    } catch { setChip("chip-af","warn","AppFolio: asks on first use"); }
+  } else setChip("chip-af","bad","AppFolio: unavailable here");
+  if (user) { try { myId = await user.id(); } catch {} }
+  if (db) {
+    setChip("chip-db","ok","Saved estimates: on");
+    db.collection("estimates").orderBy("createdAt","desc").limit(50).onSnapshot(snap => {
+      historyRows = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      renderHistory();
+    }, () => { $("history").innerHTML = `<div class="empty">Saved estimates could not be loaded right now. Reload the page to try again.</div>`; setChip("chip-db","warn","Saved estimates: offline"); });
+  } else {
+    setChip("chip-db","bad","Saved estimates: sign in");
+    $("history").innerHTML = `<div class="empty">Sign in to Claude to save estimates and track accuracy.</div>`;
+  }
+})();
+})();
+</script>
+
+</body></html>
